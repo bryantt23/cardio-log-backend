@@ -12,7 +12,7 @@ mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTop
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log('MongoDB connection error:', err));
 
-const meditationSchema = new mongoose.Schema({
+const cardioSchema = new mongoose.Schema({
     id: String,
     youTubeUrl: String,
     thumbnailUrl: String,
@@ -20,26 +20,41 @@ const meditationSchema = new mongoose.Schema({
     description: String,
     length: Number,
     isFavorite: Boolean
-})
+}, { collection: 'cardio' })
 
-const Meditation = mongoose.model('Meditation', meditationSchema)
+const Cardio = mongoose.model('Cardio', cardioSchema)
 
-app.get('/meditations', async (req, res) => {
+app.get('/cardio', async (req, res) => {
     try {
         let sortField = req.query.sortField || 'finishTime'
         let sortOrder = req.query.sortOrder === 'asc' ? 1 : -1
 
-        const meditations = await Meditation.find({}).sort({ [sortField]: sortOrder })
-        res.json(meditations)
+        // Get the current date and calculate the start of the current week (Sunday 12:00 AM)
+        const now = new Date()
+        const dayOfWeek = now.getDay(); // Sunday is day 0
+        const startOfWeek = new Date(now.setDate(now.getDate() - dayOfWeek))
+        startOfWeek.setHours(0, 0, 0, 0) // Set time to 12:00 AM
+
+        const cardio = await Cardio.find({}).sort({ [sortField]: sortOrder })
+
+        // Calculate minutes done this week
+        const minutesDoneThisWeek = cardio
+            .filter(session => session.finishTime >= startOfWeek.getTime())
+            .reduce((total, session) => total + session.length, 0)
+
+        res.json({
+            sessions: cardio,
+            minutesDoneThisWeek
+        })
     } catch (error) {
-        console.error('Error retrieving meditations:', error);
-        res.status(500).send('Error retrieving meditations');
+        console.error('Error retrieving cardio:', error);
+        res.status(500).send('Error retrieving cardio');
     }
 })
 
-app.post('/meditations', async (req, res) => {
+app.post('/cardio', async (req, res) => {
     try {
-        const newSession = new Meditation(req.body)
+        const newSession = new Cardio(req.body)
         await newSession.save()
         res.status(201).send(newSession)
     } catch (error) {
@@ -48,9 +63,9 @@ app.post('/meditations', async (req, res) => {
     }
 })
 
-app.put('/meditations/:id/toggleFavorite', async (req, res) => {
+app.put('/cardio/:id/toggleFavorite', async (req, res) => {
     try {
-        const session = await Meditation.findById(req.params.id)
+        const session = await Cardio.findById(req.params.id)
         if (!session) {
             return res.status(404).send('Session not found')
         }
