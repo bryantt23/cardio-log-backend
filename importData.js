@@ -2,15 +2,17 @@ require('dotenv').config(); // Load environment variables
 const mongoose = require('mongoose');
 const fs = require('fs'); // For reading the JSON file
 
-// Define a Mongoose schema for the meditations
-const meditationSchema = new mongoose.Schema({
+const cardioSchema = new mongoose.Schema({
+    id: String,
     youTubeUrl: String,
+    thumbnailUrl: String,
     finishTime: Number,
     description: String,
-    length: Number
-});
+    length: Number,
+    isFavorite: Boolean
+}, { collection: 'cardio' }); // Specify 'cardio' as the collection name
 
-const Meditation = mongoose.model('Meditation', meditationSchema);
+const Cardio = mongoose.model('Cardio', cardioSchema);
 
 // Function to import data from JSON file to MongoDB
 async function importData() {
@@ -20,13 +22,13 @@ async function importData() {
         console.log('Connected to MongoDB');
 
         // Read the JSON file
-        const data = JSON.parse(fs.readFileSync('meditations.json', 'utf8'));
+        const data = JSON.parse(fs.readFileSync('cardio.json', 'utf8'));
 
         // Clear existing data if necessary
-        await Meditation.deleteMany({});
+        await Cardio.deleteMany({});
 
         // Insert the data into the database
-        await Meditation.insertMany(data);
+        await Cardio.insertMany(data);
         console.log('Data successfully inserted');
 
         // Disconnect from the database

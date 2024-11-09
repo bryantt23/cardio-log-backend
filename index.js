@@ -33,18 +33,30 @@ app.get('/cardio', async (req, res) => {
         const now = new Date()
         const dayOfWeek = now.getDay(); // Sunday is day 0
         const startOfWeek = new Date(now.setDate(now.getDate() - dayOfWeek))
+        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
         startOfWeek.setHours(0, 0, 0, 0) // Set time to 12:00 AM
 
         const cardio = await Cardio.find({}).sort({ [sortField]: sortOrder })
 
         // Calculate minutes done this week
-        const minutesDoneThisWeek = cardio
+        const minutesDoneThisWeek = Math.floor(cardio
             .filter(session => session.finishTime >= startOfWeek.getTime())
-            .reduce((total, session) => total + session.length, 0)
+            .reduce((total, session) => total + session.length, 0) / 60
+        )
+
+        // Calculate minutes done this month
+        const minutesDoneThisMonth = Math.floor(cardio
+            .filter(session => session.finishTime >= startOfMonth.getTime())
+            .reduce((total, session) => total + session.length, 0) / 60
+        )
+
+        const typesOfCardio = Array.from(new Set(cardio.filter(c => c.youTubeUrl === undefined).map(c => c.description)))
 
         res.json({
             sessions: cardio,
-            minutesDoneThisWeek
+            minutesDoneThisMonth,
+            minutesDoneThisWeek,
+            typesOfCardio
         })
     } catch (error) {
         console.error('Error retrieving cardio:', error);

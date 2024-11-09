@@ -1,0 +1,53 @@
+[
+    {
+        "description": "YouTube Cardio",
+        "youTubeUrl": "https://www.youtube.com/watch?v=0gfGlyoyVcM",
+        "finishTime": 1730457600000,
+        "length": 1800,
+        "isFavorite": true
+    },
+    {
+        "description": "YouTube Cardio",
+        "youTubeUrl": "https://www.youtube.com/watch?v=mZeFvX3ALKY",
+        "finishTime": 1730544000000,
+        "length": 1500,
+        "isFavorite": false
+    },
+    {
+        "description": "Walking",
+        "finishTime": 1730630400000,
+        "length": 3600,
+        "isFavorite": true
+    },
+    {
+        "description": "Just Dance",
+        "finishTime": 1700000000000,
+        "length": 1260,
+        "isFavorite": false
+    },
+    {
+        "description": "Walking",
+        "finishTime": 1700100000000,
+        "length": 2700,
+        "isFavorite": true
+    },
+    {
+        "description": "YouTube Cardio",
+        "youTubeUrl": "https://www.youtube.com/watch?v=0gfGlyoyVcM",
+        "finishTime": 1700200000000,
+        "length": 1800,
+        "isFavorite": false
+    },
+    {
+        "description": "Walking",
+        "finishTime": 1731129600000,
+        "length": 3600,
+        "isFavorite": true
+    },
+    {
+        "description": "Just Dance",
+        "finishTime": 1731216000000,
+        "length": 1260,
+        "isFavorite": false
+    }
+]
