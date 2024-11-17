@@ -26,42 +26,55 @@ const Cardio = mongoose.model('Cardio', cardioSchema)
 
 app.get('/cardio', async (req, res) => {
     try {
-        let sortField = req.query.sortField || 'finishTime'
-        let sortOrder = req.query.sortOrder === 'asc' ? 1 : -1
+        let sortField = req.query.sortField || 'finishTime';
+        let sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
 
         // Calculate the start of the current week (Sunday 12:00 AM UTC) and month (UTC)
-        const now = new Date()
-        const dayOfWeek = now.getDay(); // Sunday is day 0
+        const now = new Date();
+        const dayOfWeek = now.getUTCDay(); // Sunday is day 0
         const startOfWeek = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - dayOfWeek));
         const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
-        const cardio = await Cardio.find({}).sort({ [sortField]: sortOrder })
+        // Debugging logs
+        console.log('Now (UTC):', now.toISOString());
+        console.log('Start of Week (UTC):', startOfWeek.toISOString());
+        console.log('Start of Month (UTC):', startOfMonth.toISOString());
+
+        const cardio = await Cardio.find({}).sort({ [sortField]: sortOrder });
+
+        console.log('All Sessions:', cardio);
 
         // Calculate minutes done this week
-        const minutesDoneThisWeek = Math.floor(cardio
-            .filter(session => session.finishTime >= startOfWeek.getTime())
-            .reduce((total, session) => total + session.length, 0) / 60
-        )
+        const filteredThisWeek = cardio.filter(session => session.finishTime >= startOfWeek.getTime());
+        const totalSecondsThisWeek = filteredThisWeek.reduce((total, session) => total + session.length, 0);
+        const minutesDoneThisWeek = Math.floor(totalSecondsThisWeek / 60);
+
+        console.log('Filtered Sessions This Week:', filteredThisWeek);
+        console.log('Total Seconds This Week:', totalSecondsThisWeek);
+        console.log('Minutes Done This Week:', minutesDoneThisWeek);
 
         // Calculate minutes done this month
-        const minutesDoneThisMonth = Math.floor(cardio
-            .filter(session => session.finishTime >= startOfMonth.getTime())
-            .reduce((total, session) => total + session.length, 0) / 60
-        )
+        const filteredThisMonth = cardio.filter(session => session.finishTime >= startOfMonth.getTime());
+        const totalSecondsThisMonth = filteredThisMonth.reduce((total, session) => total + session.length, 0);
+        const minutesDoneThisMonth = Math.floor(totalSecondsThisMonth / 60);
 
-        const typesOfCardio = Array.from(new Set(cardio.filter(c => c.youTubeUrl === undefined).map(c => c.description)))
+        console.log('Filtered Sessions This Month:', filteredThisMonth);
+        console.log('Total Seconds This Month:', totalSecondsThisMonth);
+        console.log('Minutes Done This Month:', minutesDoneThisMonth);
+
+        const typesOfCardio = Array.from(new Set(cardio.filter(c => c.youTubeUrl === undefined).map(c => c.description)));
 
         res.json({
             sessions: cardio,
             minutesDoneThisMonth,
             minutesDoneThisWeek,
             typesOfCardio
-        })
+        });
     } catch (error) {
         console.error('Error retrieving cardio:', error);
         res.status(500).send('Error retrieving cardio');
     }
-})
+});
 
 app.post('/cardio', async (req, res) => {
     try {
