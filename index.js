@@ -29,12 +29,11 @@ app.get('/cardio', async (req, res) => {
         let sortField = req.query.sortField || 'finishTime'
         let sortOrder = req.query.sortOrder === 'asc' ? 1 : -1
 
-        // Get the current date and calculate the start of the current week (Sunday 12:00 AM)
+        // Calculate the start of the current week (Sunday 12:00 AM UTC) and month (UTC)
         const now = new Date()
         const dayOfWeek = now.getDay(); // Sunday is day 0
-        const startOfWeek = new Date(now.setDate(now.getDate() - dayOfWeek))
-        const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-        startOfWeek.setHours(0, 0, 0, 0) // Set time to 12:00 AM
+        const startOfWeek = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - dayOfWeek));
+        const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
         const cardio = await Cardio.find({}).sort({ [sortField]: sortOrder })
 
