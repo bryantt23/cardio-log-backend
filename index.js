@@ -31,8 +31,9 @@ app.get('/cardio', async (req, res) => {
 
         // Calculate the start of the current week (Sunday 12:00 AM UTC) and month (UTC)
         const now = new Date();
-        const dayOfWeek = now.getUTCDay(); // Sunday is day 0
-        const startOfWeek = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - dayOfWeek));
+        const dayOfWeek = now.getUTCDay(); // Sunday is 0
+        const daysToSubtract = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // Adjust for Sunday
+        const startOfWeek = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - daysToSubtract));
         const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 
         // Debugging logs
