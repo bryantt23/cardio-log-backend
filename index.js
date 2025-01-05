@@ -4,11 +4,15 @@ const mongoose = require('mongoose')
 const cors = require('cors')
 const app = express()
 const port = process.env.PORT || 3000
+const { DateTime } = require('luxon')
+
+const DEFAULT_TIME_ZONE = 'Asia/Manila' // Change this to 'America/Los_Angeles' for US
 
 app.use(cors())
 app.use(express.json())
 
-mongoose.connect(process.env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true })
+mongoose
+    .connect(process.env.MONGODB_URI, { serverSelectionTimeoutMS: 30000 })
     .then(() => console.log('MongoDB connected'))
     .catch(err => console.log('MongoDB connection error:', err));
 
@@ -29,30 +33,25 @@ app.get('/cardio', async (req, res) => {
         let sortField = req.query.sortField || 'finishTime';
         let sortOrder = req.query.sortOrder === 'asc' ? 1 : -1;
 
-        // Calculate the start of the current week (Sunday 12:00 AM UTC) and month (UTC)
-        const now = new Date();
-        // Check if today is Sunday
-        let startOfWeek;
-        if (now.getUTCDay() === 0) {
-            // If today is Sunday, set startOfWeek to today at 12:00 AM
-            startOfWeek = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate(), 0, 0, 0));
-        } else {
-            // Otherwise, calculate the previous Sunday at 12:00 AM
-            startOfWeek = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - now.getUTCDay(), 0, 0, 0));
-        }
-        const startOfMonth = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+        const now = DateTime.now().setZone(DEFAULT_TIME_ZONE);
+
+        // Start of the current week (Sunday 12:00 AM UTC)
+        const startOfWeek = now.startOf('week')
+            .plus({ week: now.weekdayShort === 'Sun' ? 1 : 0 })
+            .minus({ days: 1 })
+
+        // Start of the current month (1st of the month 12:00 AM UTC)
+        const startOfMonth = now.startOf('month')
 
         // Debugging logs
-        console.log('Now (UTC):', now.toISOString());
-        console.log('Start of Week (UTC):', startOfWeek.toISOString());
-        console.log('Start of Month (UTC):', startOfMonth.toISOString());
+        console.log('Now (UTC):', now.toISO());
+        console.log('Start of Week (UTC):', startOfWeek.toISO(), startOfWeek.toMillis());
+        console.log('Start of Month (UTC):', startOfMonth.toISO());
 
         const cardio = await Cardio.find({}).sort({ [sortField]: sortOrder });
 
-        console.log('All Sessions:', cardio);
-
         // Calculate minutes done this week
-        const filteredThisWeek = cardio.filter(session => session.finishTime >= startOfWeek.getTime());
+        const filteredThisWeek = cardio.filter(session => session.finishTime >= startOfWeek.toMillis());
         const totalSecondsThisWeek = filteredThisWeek.reduce((total, session) => total + session.length, 0);
         const minutesDoneThisWeek = Math.floor(totalSecondsThisWeek / 60);
 
@@ -61,7 +60,7 @@ app.get('/cardio', async (req, res) => {
         console.log('Minutes Done This Week:', minutesDoneThisWeek);
 
         // Calculate minutes done this month
-        const filteredThisMonth = cardio.filter(session => session.finishTime >= startOfMonth.getTime());
+        const filteredThisMonth = cardio.filter(session => session.finishTime >= startOfMonth.toMillis());
         const totalSecondsThisMonth = filteredThisMonth.reduce((total, session) => total + session.length, 0);
         const minutesDoneThisMonth = Math.floor(totalSecondsThisMonth / 60);
 
