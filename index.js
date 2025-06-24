@@ -108,6 +108,21 @@ app.put('/cardio/:id/toggleFavorite', async (req, res) => {
     }
 })
 
+app.delete('/cardio/:id', async (req, res) => {
+    try {
+        const deletedSession = await Cardio.findByIdAndDelete(req.params.id)
+        if (!deletedSession) {
+            return res.status(404).send('Session not found')
+        }
+
+        res.json({ message: 'Session deleted successfully' })
+    } catch (error) {
+        console.error('Error deleting session:', error);
+        res.status(500).send('Error deleting session')
+    }
+})
+
+
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);
 })
