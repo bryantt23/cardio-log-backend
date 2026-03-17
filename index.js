@@ -6,7 +6,7 @@ const app = express()
 const port = process.env.PORT || 3000
 const { DateTime } = require('luxon')
 
-const DEFAULT_TIME_ZONE = 'Asia/Manila' // Change this to 'America/Los_Angeles' for US
+const DEFAULT_TIME_ZONE = 'America/Los_Angeles' // Change this to 'Asia/Manila'
 
 app.use(cors())
 app.use(express.json())
